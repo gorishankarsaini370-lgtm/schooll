@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Govt. Demo Public School - Exam Portal</title>
+<style>
+body{font-family:Arial;background:#f3f4f6}
+.box{max-width:900px;margin:20px auto;background:#fff;padding:15px;border-radius:8px}
+.btn{background:#2563eb;color:#fff;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin:4px 2px}
+.btn2{background:#16a34a}
+.btn3{background:#9333ea}
+.btn4{background:#dc2626}
+input,select{padding:8px;border:1px solid #ccc;border-radius:6px;width:100%;margin:5px 0}
+.hidden{display:none}
+.card{border:1px solid #ddd;padding:10px;border-radius:6px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>🏫 Govt. Demo Public School – Exam Portal</h2>
+<button class="btn" onclick="show('student')">Student Portal</button>
+<button class="btn btn2" onclick="show('admin')">Admin Portal</button>
+
+<!-- Student -->
+<div id="student" class="card">
+<h3>🎓 Student Exam Form</h3>
+<input id="name" placeholder="Name">
+<input id="cls" placeholder="Class">
+<input id="roll" placeholder="Roll No">
+<input id="mob" placeholder="Mobile">
+<select id="exam">
+<option value="">Select Exam</option>
+<option>Board Exam</option>
+<option>Supplementary</option>
+<option>Practical</option>
+</select>
+
+<div class="card">
+<b>Exam Fee: ₹520</b><br>
+<button class="btn btn3" onclick="paid()">✅ I Have Paid</button>
+<p id="paidMsg" class="hidden">Payment Marked ✔</p>
+</div>
+
+<button class="btn" onclick="submitForm()">Submit Form</button>
+<div id="soft" class="card hidden"></div>
+
+<hr>
+<h4>🎫 Check Admit / Result / TC</h4>
+<input id="checkRoll" placeholder="Enter Roll No">
+<button class="btn" onclick="check()">Check</button>
+<div id="view" class="card"></div>
+</div>
+
+<!-- Admin -->
+<div id="admin" class="card hidden">
+<h3>🔐 Admin Login</h3>
+<input id="aid" placeholder="Admin ID">
+<input id="apass" type="password" placeholder="Password">
+<button class="btn btn2" onclick="login()">Login</button>
+
+<div id="panel" class="hidden">
+<h4>📋 Forms</h4>
+<div id="list"></div>
+</div>
+</div>
+</div>
+
+<script>
+let paidDone=false;
+
+function show(id){
+document.getElementById('student').classList.add('hidden');
+document.getElementById('admin').classList.add('hidden');
+document.getElementById(id).classList.remove('hidden');
+}
+
+function paid(){
+paidDone=true;
+document.getElementById('paidMsg').classList.remove('hidden');
+}
+
+function submitForm(){
+if(!paidDone){ alert("पहले पेमेंट करो!"); return; }
+
+const name=name1=document.getElementById('name').value.trim();
+const cls=document.getElementById('cls').value.trim();
+const roll=document.getElementById('roll').value.trim();
+const mob=document.getElementById('mob').value.trim();
+const exam=document.getElementById('exam').value;
+
+if(!name||!cls||!roll||!mob||!exam){
+alert("सभी फील्ड भरो"); return;
+}
+
+let data=JSON.parse(localStorage.getItem("forms")||"[]");
+data.push({name,cls,roll,mob,exam,admit:false,result:"",tc:false});
+localStorage.setItem("forms",JSON.stringify(data));
+
+document.getElementById('soft').innerHTML=
+`<b>Soft Copy:</b><br>
+School: Govt. Demo Public School<br>
+Name: ${name}<br>
+Class: ${cls}<br>
+Roll: ${roll}<br>
+Exam: ${exam}<br>
+Fee ₹520 Paid ✔`;
+
+document.getElementById('soft').classList.remove('hidden');
+paidDone=false;
+document.getElementById('paidMsg').classList.add('hidden');
+}
+
+function login(){
+if(aid.value==="11223344" && apass.value==="000000"){
+panel.classList.remove('hidden');
+load();
+}else alert("Wrong Login");
+}
+
+function load(){
+let data=JSON.parse(localStorage.getItem("forms")||"[]");
+document.getElementById('list').innerHTML=data.map((f,i)=>`
+<div class="card">
+${f.name} (Roll: ${f.roll}, Exam: ${f.exam})<br>
+<button class="btn" onclick="issue(${i})">Issue Admit</button>
+<button class="btn btn3" onclick="res(${i})">Upload Result</button>
+<button class="btn btn4" onclick="tc(${i})">Issue TC</button>
+</div>
+`).join("")||"No Forms";
+}
+
+function issue(i){
+let d=JSON.parse(localStorage.getItem("forms"));
+d[i].admit=true;
+localStorage.setItem("forms",JSON.stringify(d));
+alert("Admit Issued");
+}
+
+function res(i){
+let m=prompt("Enter Result:");
+let d=JSON.parse(localStorage.getItem("forms"));
+d[i].result=m;
+localStorage.setItem("forms",JSON.stringify(d));
+alert("Result Saved");
+}
+
+function tc(i){
+let d=JSON.parse(localStorage.getItem("forms"));
+d[i].tc=true;
+localStorage.setItem("forms",JSON.stringify(d));
+alert("TC Issued");
+}
+
+function check(){
+let r=document.getElementById('checkRoll').value.trim();
+let d=JSON.parse(localStorage.getItem("forms")||"[]");
+let f=d.find(x=>x.roll===r);
+if(!f){ document.getElementById('view').innerHTML="No Record"; return; }
+
+document.getElementById('view').innerHTML=
+`Name: ${f.name}<br>
+Admit: ${f.admit?"Issued ✔":"Not Issued"}<br>
+Result: ${f.result||"Not Uploaded"}<br>
+TC: ${f.tc?"Issued ✔":"Not Issued"}`;
+}
+</script>
+</body>
+</html>
